@@ -24,6 +24,7 @@ jobs:
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           DESTINATARIO_EMAIL: ${{ secrets.DESTINATARIO_EMAIL }}
           ONE_RUN: "true"
+          FORCE_SEND_TEST_EMAIL: "true"
         run: python monitor.py
       - name: Save state
         uses: actions/upload-artifact@v4
