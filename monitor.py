@@ -20,21 +20,12 @@ logging.basicConfig(
 )
 
 def send_email_notification(message):
-    logging.info("Attempting to send email...")
-    # Debug info (masked)
-    logging.info(f"Config - USER: {'Set' if config.SMTP_USER else 'MISSING'}, PASS: {'Set' if config.SMTP_PASS else 'MISSING'}, TARGET: {'Set' if config.DESTINATARIO_EMAIL else 'MISSING'}")
-    
     if not config.SMTP_USER or not config.SMTP_PASS or not config.DESTINATARIO_EMAIL:
         logging.warning("Email configuration missing. Skipping.")
-        if os.getenv("FORCE_SEND_TEST_EMAIL") == "true":
-             raise ValueError("Email configuration missing during forced test!")
         return False
     
     msg = MIMEText(message)
-    msg['Subject'] = '🚨 FORMULARIO CONSULADO ABIERTO - Pedir turno YA'
-    msg['From'] = config.SMTP_USER
-    msg['To'] = config.DESTINATARIO_EMAIL
-    
+...
     try:
         with smtplib.SMTP(config.SMTP_HOST, config.SMTP_PORT) as server:
             server.starttls()
@@ -44,8 +35,6 @@ def send_email_notification(message):
         return True
     except Exception as e:
         logging.error(f"Error sending email notification: {e}")
-        if os.getenv("FORCE_SEND_TEST_EMAIL") == "true":
-             raise e
         return False
 
 def get_last_state():
@@ -97,10 +86,6 @@ def check_form_status():
                     current_status = "cerrado"
             
             logging.info(f"Current status: {current_status.upper()}")
-            
-            # Forced test email for cloud verification
-            if os.getenv("FORCE_SEND_TEST_EMAIL") == "true":
-                send_email_notification(f"✅ PRUEBA CLOUD EXITOSA: El monitor está funcionando desde GitHub.\nEstado detectado: {current_status.upper()}\nURL: {config.FORM_URL}")
             
             last_state_data = get_last_state()
             last_status = last_state_data.get("ultimo_estado")
