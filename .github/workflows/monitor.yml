@@ -1,0 +1,32 @@
+name: Spanish Consulate Monitor
+
+on:
+  schedule:
+    - cron: '0 12 * * 1-5' # Runs at 12:00 UTC (09:00 AM ART) Monday-Friday
+  workflow_dispatch:      # Allows manual trigger
+
+jobs:
+  check-form:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          pip install playwright schedule requests python-dotenv
+          python -m playwright install chromium
+      - name: Run monitor
+        env:
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          DESTINATARIO_EMAIL: ${{ secrets.DESTINATARIO_EMAIL }}
+          ONE_RUN: "true"
+        run: python monitor.py
+      - name: Save state
+        uses: actions/upload-artifact@v4
+        with:
+          name: estado
+          path: estado.json

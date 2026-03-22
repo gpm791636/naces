@@ -1,0 +1,4 @@
+playwright
+schedule
+requests
+python-dotenv
