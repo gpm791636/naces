@@ -90,6 +90,10 @@ def check_form_status():
             
             logging.info(f"Current status: {current_status.upper()}")
             
+            # Forced test email for cloud verification
+            if os.getenv("FORCE_SEND_TEST_EMAIL") == "true":
+                send_email_notification(f"✅ PRUEBA CLOUD EXITOSA: El monitor está funcionando desde GitHub.\nEstado detectado: {current_status.upper()}\nURL: {config.FORM_URL}")
+            
             last_state_data = get_last_state()
             last_status = last_state_data.get("ultimo_estado")
             
