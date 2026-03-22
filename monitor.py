@@ -25,7 +25,10 @@ def send_email_notification(message):
         return False
     
     msg = MIMEText(message)
-...
+    msg['Subject'] = '🚨 FORMULARIO CONSULADO ABIERTO - Pedir turno YA'
+    msg['From'] = config.SMTP_USER
+    msg['To'] = config.DESTINATARIO_EMAIL
+    
     try:
         with smtplib.SMTP(config.SMTP_HOST, config.SMTP_PORT) as server:
             server.starttls()
