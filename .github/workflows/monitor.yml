@@ -2,7 +2,7 @@ name: Spanish Consulate Monitor
 
 on:
   schedule:
-    - cron: '0 12 * * 1-5' # Runs at 12:00 UTC (09:00 AM ART) Monday-Friday
+    - cron: '0 12 * * *' # Runs at 12:00 UTC (09:00 AM ART) every day including weekends
   workflow_dispatch:      # Allows manual trigger
 
 jobs:
@@ -10,14 +10,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      # ── RESTORE previous state so the script remembers last known status ──
+      - name: Restore previous state
+        uses: actions/cache@v4
+        with:
+          path: estado.json
+          key: form-state-${{ runner.os }}
+          restore-keys: |
+            form-state-
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+
+      # ── Install from requirements.txt (single source of truth) ──
       - name: Install dependencies
         run: |
-          pip install playwright schedule requests python-dotenv
-          python -m playwright install chromium
+          pip install -r requirements.txt
+          python -m playwright install chromium --with-deps
+
       - name: Run monitor
         env:
           SMTP_USER: ${{ secrets.SMTP_USER }}
@@ -25,8 +38,19 @@ jobs:
           DESTINATARIO_EMAIL: ${{ secrets.DESTINATARIO_EMAIL }}
           ONE_RUN: "true"
         run: python monitor.py
-      - name: Save state
-        uses: actions/upload-artifact@v4
+
+      # ── SAVE updated state for the next run ──
+      - name: Save state (cache)
+        uses: actions/cache@v4
         with:
-          name: estado
           path: estado.json
+          key: form-state-${{ runner.os }}
+
+      # ── Also upload as artifact for visibility/debugging ──
+      - name: Upload state artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: estado-${{ github.run_number }}
+          path: estado.json
+          retention-days: 30
